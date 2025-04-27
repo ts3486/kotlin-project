@@ -1,10 +1,23 @@
 package com.versiontracker.model
 
+import jakarta.persistence.*
+
+@Entity
+@Table(name = "libraries")
 data class Library(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+    
+    @Column(nullable = false)
     val name: String,
-    val updateSource: UpdateSource,
-    val sourceIdentifier: String, // e.g., "vercel/next.js" for GitHub, "next" for NPM
-    val documentationUrl: String,
+    
+    @Column(nullable = false)
     val currentVersion: String,
-    val updateCheckUrl: String? = null // Optional custom URL for checking updates
+    
+    @Column(nullable = false)
+    val repositoryUrl: String,
+    
+    @OneToMany(mappedBy = "library", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val releases: MutableList<Release> = mutableListOf()
 ) 

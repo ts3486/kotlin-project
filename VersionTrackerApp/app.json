@@ -1,4 +1,22 @@
 {
-  "name": "VersionTrackerApp",
-  "slug": "VersionTrackerApp"
+  "name": "VersionTracker",
+  "slug": "versiontracker",
+  "version": "1.0.0",
+  "orientation": "portrait",
+  "userInterfaceStyle": "light",
+  "assetBundlePatterns": [
+    "**/*"
+  ],
+  "ios": {
+    "supportsTablet": true
+  },
+  "android": {
+    "adaptiveIcon": {
+      "backgroundColor": "#ffffff"
+    }
+  },
+  "web": {
+    "favicon": "./assets/favicon.png"
+  },
+  "newArchEnabled": true
 }
