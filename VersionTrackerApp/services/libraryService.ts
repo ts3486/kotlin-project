@@ -2,29 +2,66 @@ import axios from 'axios';
 import { LibraryUpdate } from '../types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getTrackedLibraries, updateLibraryVersion } from './storageService';
+import { Platform } from 'react-native';
+import BackgroundFetch from 'react-native-background-fetch';
+import PushNotification from 'react-native-push-notification';
 
 const NPM_REGISTRY_URL = 'https://registry.npmjs.org';
 const GITHUB_API_URL = 'https://api.github.com';
+const CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 interface PackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 }
 
-const readPackageJson = (): PackageJson => {
-  try {
-    const packageJsonPath = path.join(process.cwd(), 'package.json');
-    const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
-    return JSON.parse(packageJsonContent);
-  } catch (error) {
-    console.error('Error reading package.json:', error);
-    return {};
+export const initializeBackgroundCheck = async () => {
+  if (Platform.OS === 'ios') {
+    await BackgroundFetch.configure({
+      minimumFetchInterval: 15, // minutes
+      stopOnTerminate: false,
+      enableHeadless: true,
+      startOnBoot: true,
+    }, async (taskId: string) => {
+      await checkForUpdates();
+      BackgroundFetch.finish(taskId);
+    });
+  } else {
+    // For Android, we'll use a different background task mechanism
+    setInterval(checkForUpdates, CHECK_INTERVAL);
+  }
+};
+
+export const checkForUpdates = async () => {
+  const libraries = await getTrackedLibraries();
+  for (const library of libraries) {
+    try {
+      const response = await axios.get(`${NPM_REGISTRY_URL}/${library.name}`);
+      const packageData = response.data;
+      const latestVersion = packageData['dist-tags'].latest;
+      
+      if (latestVersion !== library.currentVersion) {
+        // New version available
+        await updateLibraryVersion(library.name, latestVersion);
+        
+        // Send notification
+        PushNotification.localNotification({
+          title: 'New Version Available',
+          message: `${library.name} has a new version: ${latestVersion}`,
+          channelId: 'updates',
+        });
+      }
+    } catch (error) {
+      console.error(`Error checking updates for ${library.name}:`, error);
+    }
   }
 };
 
 export const fetchLibraryUpdates = async (libraries: string[]): Promise<LibraryUpdate[]> => {
   try {
     const updates: LibraryUpdate[] = [];
+    const trackedLibraries = await getTrackedLibraries();
 
     for (const packageName of libraries) {
       try {
@@ -32,10 +69,8 @@ export const fetchLibraryUpdates = async (libraries: string[]): Promise<LibraryU
         const packageData = response.data;
         
         const latestVersion = packageData['dist-tags'].latest;
-        
-        // For now, we'll assume current version is the latest
-        // In a real app, you'd want to store the current version somewhere
-        const currentVersion = latestVersion;
+        const trackedLibrary = trackedLibraries.find(lib => lib.name === packageName);
+        const currentVersion = trackedLibrary?.currentVersion || latestVersion;
 
         const update: LibraryUpdate = {
           id: packageName,
@@ -51,12 +86,10 @@ export const fetchLibraryUpdates = async (libraries: string[]): Promise<LibraryU
         updates.push(update);
       } catch (error) {
         console.error(`Error fetching update for ${packageName}:`, error);
-        // Continue with other packages even if one fails
         continue;
       }
     }
 
-    // Sort updates by breaking changes first, then by release date
     return updates.sort((a, b) => {
       if (a.isBreakingChange !== b.isBreakingChange) {
         return a.isBreakingChange ? -1 : 1;

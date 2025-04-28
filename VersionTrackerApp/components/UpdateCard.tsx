@@ -42,7 +42,7 @@ export const UpdateCard: React.FC<UpdateCardProps> = ({ update }) => {
             iconColor={theme.colors.primary}
             onPress={() => {}}
           />
-          <Text variant="bodySmall" style={[styles.repoUrl, { color: theme.colors.onSurfaceVariant }]}>
+          <Text variant="bodySmall" style={[styles.repoUrl, { color: theme.colors.onSurfaceVariant }]} numberOfLines={1} ellipsizeMode="tail">
             {update.repositoryUrl}
           </Text>
         </View>
@@ -97,9 +97,11 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   repoUrl: {
     opacity: 0.7,
     marginLeft: 8,
+    flex: 1,
   },
 }); 
