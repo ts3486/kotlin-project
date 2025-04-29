@@ -4,14 +4,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { useColorScheme } from 'react-native';
-import PushNotification from 'react-native-push-notification';
+import { configurePushNotifications } from './services/notificationService';
+import { initializeBackgroundCheck } from './services/libraryService';
 
 import type { RootStackParamList } from './types/navigation';
 import { lightTheme, darkTheme } from './theme';
 import HomeScreen from './screens/HomeScreen';
 import AddLibraryScreen from './screens/AddLibraryScreen';
 import TestScreen from './screens/TestScreen';
-import { initializeBackgroundCheck } from './services/libraryService';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,20 +21,9 @@ const App = () => {
   const theme = isDarkMode ? darkTheme : lightTheme;
 
   useEffect(() => {
-    // Configure notifications
-    PushNotification.configure({
-      onNotification: function (notification) {
-        console.log('NOTIFICATION:', notification);
-      },
-      permissions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-      popInitialNotification: true,
-      requestPermissions: true,
-    });
-
+    // Initialize notifications
+    configurePushNotifications();
+    
     // Initialize background checks
     initializeBackgroundCheck();
   }, []);

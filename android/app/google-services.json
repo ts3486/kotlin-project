@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978318445107",
+    "project_id": "library-tracker-f4b03",
+    "storage_bucket": "library-tracker-f4b03.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978318445107:android:1546a25c0672b6f599f146",
+        "android_client_info": {
+          "package_name": "com.versiontracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbPaafDFM3__JBFGZ-TZH2euAou1unEz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
